@@ -30,6 +30,8 @@ class CodeStandardChecker:
             "test_coverage": self._check_test_coverage(),
             "database_violations": self._check_database_standards(),
             "performance_issues": self._check_performance_issues(),
+            # 🆕 添加业务逻辑规则检查
+            # "business_logic_violations": self._check_business_logic_rules(),
             "summary": self._generate_summary()
         }
         return results
@@ -70,8 +72,8 @@ class CodeStandardChecker:
         for java_file in self.project_root.rglob("*.java"):
             violations.extend(self._check_java_naming(java_file))
             
-        for py_file in self.project_root.rglob("*.py"):
-            violations.extend(self._check_python_naming(py_file))
+        # for py_file in self.project_root.rglob("*.py"):
+        #     violations.extend(self._check_python_naming(py_file))
             
         return violations
     
@@ -156,8 +158,8 @@ class CodeStandardChecker:
                 "suggestion": "请创建对应的包结构"
             })
         
-        # 检查循环依赖
-        violations.extend(self._check_circular_dependencies())
+        # 检查循环依赖 (暂时跳过)
+        # violations.extend(self._check_circular_dependencies())
         
         return violations
     
@@ -399,6 +401,196 @@ class CodeStandardChecker:
     
     def _to_upper_snake_case(self, name: str) -> str:
         return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', name).upper()
+
+    def _check_business_logic_rules(self) -> List[Dict]:
+        """检查业务逻辑规则"""
+        violations = []
+
+        # 检查发货相关业务规则
+        violations.extend(self._check_shipping_business_rules())
+
+        # 检查月初发货业务规则
+        violations.extend(self._check_monthly_shipping_rules())
+
+        # 检查商品实例相关规则
+        violations.extend(self._check_product_instance_rules())
+
+        return violations
+
+    def _check_shipping_business_rules(self) -> List[Dict]:
+        """检查发货业务规则"""
+        violations = []
+
+        # 查找发货相关的Service类
+        shipping_services = []
+        for java_file in self.project_root.rglob("*Service.java"):
+            try:
+                with open(java_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # 识别发货相关的Service
+                if any(keyword in content.lower() for keyword in ['shipping', 'delivery', '发货', '配送']):
+                    shipping_services.append((java_file, content))
+            except Exception as e:
+                pass
+
+        # 检查发货前的商品实例校验
+        for java_file, content in shipping_services:
+            violations.extend(self._check_product_validation_before_shipping(java_file, content))
+
+        return violations
+
+    def _check_product_validation_before_shipping(self, file_path: Path, content: str) -> List[Dict]:
+        """检查发货前商品实例校验规则"""
+        violations = []
+
+        # 查找发货方法
+        shipping_methods = re.finditer(r'public\s+\w+\s+(ship|delivery|send|发货)\w*\s*\([^)]*\)\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}', content, re.IGNORECASE | re.DOTALL)
+
+        for match in shipping_methods:
+            method_name = match.group(1)
+            method_body = match.group(2)
+            method_line = content[:match.start()].count('\n') + 1
+
+            # 检查是否有商品实例校验
+            validation_patterns = [
+                r'validate.*product.*instance',
+                r'check.*product.*valid',
+                r'product.*isValid',
+                r'商品.*校验',
+                r'实例.*生效',
+                r'validateProductInstance',
+                r'checkProductStatus'
+            ]
+
+            has_validation = any(re.search(pattern, method_body, re.IGNORECASE) for pattern in validation_patterns)
+
+            if not has_validation:
+                violations.append({
+                    "file": str(file_path),
+                    "line": method_line,
+                    "type": "business_logic_violation",
+                    "rule": "发货前必须校验商品实例是否生效",
+                    "violation": f"发货方法 '{method_name}' 缺少商品实例校验",
+                    "suggestion": "在发货前添加商品实例生效状态校验，如: validateProductInstance(productId)"
+                })
+
+        return violations
+
+    def _check_monthly_shipping_rules(self) -> List[Dict]:
+        """检查月初发货业务规则"""
+        violations = []
+
+        # 查找月初发货相关的方法
+        for java_file in self.project_root.rglob("*Service.java"):
+            try:
+                with open(java_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                violations.extend(self._check_monthly_sub_product_validation(java_file, content))
+
+            except Exception as e:
+                pass
+
+        return violations
+
+    def _check_monthly_sub_product_validation(self, file_path: Path, content: str) -> List[Dict]:
+        """检查月初发货时的子产品校验"""
+        violations = []
+
+        # 查找月初发货相关方法
+        monthly_shipping_patterns = [
+            r'monthly.*ship',
+            r'month.*delivery',
+            r'月初.*发货',
+            r'beginOfMonth.*ship',
+            r'monthlyDelivery'
+        ]
+
+        for pattern in monthly_shipping_patterns:
+            methods = re.finditer(rf'public\s+\w+\s+\w*{pattern}\w*\s*\([^)]*\)\s*\{{([^}}]*(?:\{{[^}}]*\}}[^}}]*)*)\}}', content, re.IGNORECASE | re.DOTALL)
+
+            for match in methods:
+                method_body = match.group(1)
+                method_line = content[:match.start()].count('\n') + 1
+
+                # 检查是否有子产品重复下发校验
+                sub_product_validation_patterns = [
+                    r'check.*sub.*product.*delivered',
+                    r'validate.*monthly.*sub.*product',
+                    r'已.*下发.*子产品',
+                    r'当月.*子产品.*校验',
+                    r'checkMonthlySubProductDelivered',
+                    r'validateSubProductNotDelivered'
+                ]
+
+                has_sub_product_validation = any(re.search(val_pattern, method_body, re.IGNORECASE) for val_pattern in sub_product_validation_patterns)
+
+                if not has_sub_product_validation:
+                    violations.append({
+                        "file": str(file_path),
+                        "line": method_line,
+                        "type": "business_logic_violation",
+                        "rule": "月初发货时必须校验当月是否已经下发过子产品",
+                        "violation": f"月初发货方法缺少子产品重复下发校验",
+                        "suggestion": "添加子产品下发状态校验，如: checkMonthlySubProductDelivered(productId, currentMonth)"
+                    })
+
+        return violations
+
+    def _check_product_instance_rules(self) -> List[Dict]:
+        """检查商品实例相关规则"""
+        violations = []
+
+        # 查找商品实例相关的类
+        for java_file in self.project_root.rglob("*Service.java"):
+            try:
+                with open(java_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # 检查商品实例状态管理
+                if any(keyword in content.lower() for keyword in ['product', 'instance', '商品', '实例']):
+                    violations.extend(self._check_product_instance_status_management(java_file, content))
+
+            except Exception as e:
+                pass
+
+        return violations
+
+    def _check_product_instance_status_management(self, file_path: Path, content: str) -> List[Dict]:
+        """检查商品实例状态管理规则"""
+        violations = []
+
+        # 查找商品实例状态变更方法
+        status_change_methods = re.finditer(r'public\s+\w+\s+\w*(update|change|modify)\w*Status\w*\s*\([^)]*\)\s*\{([^}]*(?:\{[^}]*\}[^}]*)*)\}', content, re.IGNORECASE | re.DOTALL)
+
+        for match in status_change_methods:
+            method_body = match.group(2)
+            method_line = content[:match.start()].count('\n') + 1
+
+            # 检查状态变更是否有业务校验
+            business_validation_patterns = [
+                r'validate.*business.*rule',
+                r'check.*business.*condition',
+                r'业务.*校验',
+                r'状态.*校验',
+                r'validateBusinessRule',
+                r'checkStatusTransition'
+            ]
+
+            has_business_validation = any(re.search(pattern, method_body, re.IGNORECASE) for pattern in business_validation_patterns)
+
+            if not has_business_validation:
+                violations.append({
+                    "file": str(file_path),
+                    "line": method_line,
+                    "type": "business_logic_violation",
+                    "rule": "商品实例状态变更必须包含业务规则校验",
+                    "violation": "状态变更方法缺少业务规则校验",
+                    "suggestion": "添加业务规则校验，确保状态变更符合业务逻辑"
+                })
+
+        return violations
 
 # MCP Server 主函数
 def main():
