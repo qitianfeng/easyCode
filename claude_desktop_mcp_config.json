@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "requirements-analyzer": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\01-requirements\\标准需求分析MCP服务器.py"
+      ],
+      "description": "需求分析工具 - 分析产品需求，生成技术规格"
+    },
+    "design-generator": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\02-design\\标准设计文档MCP服务器.py"
+      ],
+      "description": "设计文档生成工具 - 生成设计文档和API设计"
+    },
+    "architecture-analyzer": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\03-architecture\\标准架构分析MCP服务器.py"
+      ],
+      "description": "架构分析工具 - 分析项目架构模式"
+    },
+    "code-generator": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\04-generation\\标准代码生成MCP服务器.py"
+      ],
+      "description": "代码生成工具 - 生成完整的CRUD模块"
+    },
+    "test-generator": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\05-testing\\标准测试生成MCP服务器.py"
+      ],
+      "description": "测试生成工具 - 生成单元测试和集成测试"
+    },
+    "documentation-generator": {
+      "command": "python",
+      "args": [
+        "D:\\\\devolp\\\\code1\\\\easyCode\\mcp-tools\\05-testing\\标准文档生成MCP服务器.py"
+      ],
+      "description": "文档生成工具 - 生成API文档和README"
+    }
+  }
+}

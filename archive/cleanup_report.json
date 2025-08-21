@@ -1,0 +1,55 @@
+{
+  "cleanup_summary": {
+    "deleted_files_count": 25,
+    "deleted_dirs_count": 4,
+    "total_deleted": 29
+  },
+  "deleted_files": [
+    "check_mcp_config.py",
+    "complete_mcp_fix.py",
+    "create_real_mcp_server.py",
+    "fix_all_mcp_tools.py",
+    "智能包名配置工具.py",
+    "test_mcp_tools.py",
+    "test_mcp_functionality.py",
+    "package_config.json",
+    "mcp-tools/01-requirements/用户故事生成MCP工具.py",
+    "mcp-tools/01-requirements/需求分析MCP工具.py",
+    "mcp-tools/01-requirements/需求文档解析MCP工具.py",
+    "mcp-tools/02-design/架构设计MCP工具.py",
+    "mcp-tools/02-design/设计文档生成MCP工具.py",
+    "mcp-tools/02-design/设计文档解析MCP工具.py",
+    "mcp-tools/03-architecture/项目架构识别MCP工具.py",
+    "mcp-tools/04-generation/代码生成MCP工具.py",
+    "mcp-tools/04-generation/代码规范检查MCP工具.py",
+    "mcp-tools/04-generation/代码质量分析MCP工具.py",
+    "mcp-tools/04-generation/智能代码生成MCP工具.py",
+    "mcp-tools/05-testing/文档生成MCP工具.py",
+    "mcp-tools/05-testing/测试生成MCP工具.py",
+    "config/完整MCP配置.json",
+    "MCP工具修复报告.md",
+    "文件结构说明.md",
+    "项目状态总结.md"
+  ],
+  "deleted_directories": [
+    "generated/",
+    "test-examples/",
+    "mcp-tools\\01-requirements\\__pycache__/",
+    "mcp-tools\\04-generation\\__pycache__/"
+  ],
+  "remaining_core_files": [
+    "README.md",
+    "claude_desktop_mcp_config.json",
+    "generate_mcp_config.py",
+    "Claude_Desktop_MCP配置指南.md",
+    "MCP工具测试报告.md",
+    "simple-mcp-server说明.md",
+    "mcp-tools/simple-mcp-server.py",
+    "mcp-tools/01-requirements/标准需求分析MCP服务器.py",
+    "mcp-tools/02-design/标准设计文档MCP服务器.py",
+    "mcp-tools/03-architecture/标准架构分析MCP服务器.py",
+    "mcp-tools/04-generation/标准代码生成MCP服务器.py",
+    "mcp-tools/05-testing/标准测试生成MCP服务器.py",
+    "mcp-tools/05-testing/标准文档生成MCP服务器.py"
+  ]
+}
